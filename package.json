@@ -1,0 +1,12 @@
+{
+	"name": "my-Apro",
+	"version": "0.1.0",
+	"author": "xcx",
+	"license": "MIT",
+	"description": "A Promise/A+ Implementation",
+	"repository": "none",
+	"scripts": {},
+	"devDependencies": {
+		"promises-aplus-tests": "^2.1.2"
+	}
+}
