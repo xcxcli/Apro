@@ -1,0 +1,21 @@
+{
+	"compilerOptions":{
+		"target":"es2015",
+		"strictNullChecks":true,
+		"sourceMap":true,
+		"strict":true,
+		// "experimentalDecorators":true,
+		"moduleResolution":"node",
+		"noImplicitAny":true,
+		"noUnusedLocals":true,
+		"noUnusedParameters":true,
+		// "outDir":"/dist"
+		"alwaysStrict": true
+	},
+	"include":[
+		"src/*"
+	],
+	"exclude":[
+		"node_modules"
+	]
+}

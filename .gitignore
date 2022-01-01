@@ -1,4 +1,2 @@
-node_modules/
-log
-my-test.js
-test.js
+node_modules
+test
