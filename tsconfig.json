@@ -4,8 +4,8 @@
 		"strictNullChecks":true,
 		"sourceMap":true,
 		"strict":true,
-		// "experimentalDecorators":true,
-		"moduleResolution":"node",
+		//"experimentalDecorators":true,
+		//"moduleResolution":"node",
 		"noImplicitAny":true,
 		"noUnusedLocals":true,
 		"noUnusedParameters":true,
@@ -13,7 +13,8 @@
 		"alwaysStrict": true
 	},
 	"include":[
-		"src/*"
+		"src/*",
+		"test/*"
 	],
 	"exclude":[
 		"node_modules"

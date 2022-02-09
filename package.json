@@ -1,12 +1,14 @@
 {
 	"name": "my-Apro",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"author": "xcx",
 	"license": "MIT",
 	"description": "A Promise/A+ Implementation",
-	"repository": "none",
+	"repository": "https://github.com/xcxcli/Apro",
+	"main": "./src/Apro.js",
 	"scripts": {},
 	"devDependencies": {
+		"@types/node": "^17.0.5",
 		"promises-aplus-tests": "^2.1.2"
 	}
 }

@@ -1,1 +1,131 @@
-"use strict";module.exports=(()=>{let e=e=>"function"==typeof e,t=e=>null!==e&&("object"==typeof e||"function"==typeof e);class l{constructor(t){if(this.d=[],this.s=0,this.r=0,!e(t))throw new TypeError("");try{t(this.a.bind(this),this.b.bind(this))}catch(e){this.b(e)}}then(e,t){return new l((l,r)=>{this.c({c:l,d:r,a:e,b:t})})}catch(e){return this.then(null,e)}finally(e){return this.then(e,e)}c(t){if(0===this.s)return void this.d.push(t);let l=1===this.s,r=l?t.a:t.b;setTimeout(()=>{if(!e(r))return void t[l?"c":"d"](this.v);let s,i=t.c;try{s=r(this.v)}catch(e){s=e,this.s=2,i=t.d}i(s)},5)}a(l,r=0){if(0!==this.s||this.r!==r)return;if(l===this)return void this.b(new TypeError(""));let s=++this.r;if(t(l))try{let t=l.then;if(e(t))return void t.call(l,e=>{this.a(e,s)},e=>{this.b(e,s)})}catch(e){return void this.b(e,s)}this.s=1,this.v=l,this.d.forEach(e=>this.c(e))}b(e,t=0){0===this.s&&this.r===t&&(this.s=2,this.v=e,this.d.forEach(e=>this.c(e)))}static resolve(e){return e instanceof l?e:z.then(()=>e)}static reject(e){return z.then(()=>{throw e})}static all(e){return new l((t,r)=>{let s=e.length,i=[];e.forEach((e,n)=>l.resolve(e).then(e=>{i[n]=e,--s||t(i)},e=>r(e)))})}static allSettled(e){return new l(t=>{let r=e.length,s=[];e.forEach((e,i)=>l.resolve(e).finally(e=>{s[i]=e,--r||t(s)}))})}static race(e){return new l((t,r)=>{e.forEach(e=>l.resolve(e).then(e=>t(e),e=>r(e)))})}}let z=new l(e=>e());return l})();
+let isFunction=obj=>typeof obj==="function";
+let isObjOrFunc=obj=>obj!==null&&(typeof obj==="object"||isFunction(obj));
+
+class Apro{
+	callbacks=[]
+	state="pending"
+	value
+	constructor(func){
+		if(!isFunction(func))throw new TypeError("func should be a function");
+		try{
+			func(this._resolve.bind(this),this._reject.bind(this));
+		}catch(e){this._reject(e);}
+	}
+	then(onFullfilled,onRejected){
+		return new Apro((resolve,reject)=>{
+			this._call({
+				resolve,reject,onFullfilled,onRejected
+			});
+		});
+	}
+	catch(onError){
+		return this.then(null,onError);
+	}
+	finally(onDone){
+		return this.then(onDone,onDone);
+	}
+	_call(callback){
+		if(this.state==="pending"){
+			this.callbacks.push(callback);
+			return;
+		}
+		let isFulfilled=this.state==="fulfilled",
+			func=isFulfilled?callback.onFullfilled:callback.onRejected;
+		setTimeout(()=>{
+			if(!isFunction(func)){
+				callback[isFulfilled?"resolve":"reject"](this.value);
+				return;
+			}
+			let ret,cb=callback.resolve;
+			try{ret=func(this.value);}
+			catch(e){
+				ret=e;
+				this.state="rejected";
+				cb=callback.reject;
+			}
+			cb(ret);
+		},5);
+	}
+	level=0
+	_resolve(value,vlevel=0){
+		if(this.state!=="pending"||this.level!==vlevel)return;
+		if(value===this){
+			this._reject(new TypeError("chaining promise detected"));
+			return;
+		}
+		let level=++this.level;
+		if(isObjOrFunc(value)){
+			try{
+				let then=value.then;
+				if(isFunction(then)){
+					then.call(value,
+						v=>{this._resolve(v,level);},
+						e=>{this._reject(e,level);}
+					);
+					return;
+				}
+			}catch(e){this._reject(e,level);return;}
+		}
+		this.state="fulfilled";
+		this.value=value;
+		this.callbacks.forEach(callback=>this._call(callback));
+	}
+	_reject(error,vlevel=0){
+		if(this.state!=="pending"||this.level!==vlevel)return;
+		this.state="rejected";
+		this.value=error;
+		this.callbacks.forEach(callback=>this._call(callback));
+	}
+	static resolved=new Apro(res=>res());
+	static resolve(value){
+		if(value instanceof Apro)return value;
+		return Apro.resolved.then(()=>{
+			return value;
+		});
+	}
+	static reject(error){
+		return Apro.resolved.then(()=>{
+			throw error;
+		});
+	}
+	static deferred(){
+		let ret={};
+		ret.promise=new Apro((res,rej)=>{
+			ret.resolve=res;ret.reject=rej;
+		});
+		return ret;
+	}
+	static all(apros){
+		return new Apro((resolve,reject)=>{
+			let len=apros.length,rets=[];
+			apros.forEach((apro,index)=>Apro.resolve(apro).then(
+				value=>{
+					rets[index]=value;
+					if(!--len)resolve(rets);
+				},
+				error=>reject(error)
+			));
+		});
+	}
+	static allSettled(apros){
+		return new Apro((resolve,reject)=>{
+			let len=apros.length,rets=[];
+			apros.forEach((apro,index)=>Apro.resolve(apro).finally(
+				value=>{
+					rets[index]=value;
+					if(!--len)resolve(rets);
+				}
+			));
+		});
+	}
+	static race(apros){
+		return new Apro((resolve,reject)=>{
+			apros.forEach((apro,index)=>Apro.resolve(apro).then(
+				value=>resolve(value),
+				error=>reject(error)
+			));
+		});
+	}
+};//todo any
+
+module.exports=Apro;
